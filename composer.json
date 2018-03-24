@@ -1,0 +1,19 @@
+{
+    "name": "control-interface/php-api-client",
+    "description": "A full-featured implementation of the Control-Interface JSON-API",
+    "type": "library",
+    "require": {
+        "guzzlehttp/guzzle": ">=6.0"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^7.0"
+    },
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "LUMASERV Systems",
+            "email": "info@lumaserv.com"
+        }
+    ],
+    "minimum-stability": "stable"
+}
