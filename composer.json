@@ -1,5 +1,5 @@
 {
-    "name": "control-interface/php-api-client",
+    "name": "control-interface/php-client",
     "description": "A full-featured implementation of the Control-Interface JSON-API",
     "type": "library",
     "require": {
