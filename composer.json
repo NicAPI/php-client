@@ -15,6 +15,15 @@
             "email": "info@lumaserv.com"
         }
     ],
-    "minimum-stability": "stable"
+    "minimum-stability": "stable",
+    "autoload": {
+        "psr-4": {
+            "NicAPI\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "files": [
+            "tests/setup.php"
+        ]
+    }
 }
-
