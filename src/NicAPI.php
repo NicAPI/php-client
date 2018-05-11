@@ -65,7 +65,8 @@ class NicAPI
      */
     private static function request($actionPath, $params = [], $method = 'GET')
     {
-        $url = self::$url.$actionPath;
+        if (!substr($actionPath, 0, 8) == 'https://')
+            $url = self::$url.$actionPath;
         if (!is_array($params)) {
             return false;
         }
