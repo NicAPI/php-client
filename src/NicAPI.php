@@ -67,6 +67,8 @@ class NicAPI
     {
         if (!substr($actionPath, 0, 8) == 'https://')
             $url = self::$url.$actionPath;
+        else
+            $url = $actionPath;
         if (!is_array($params)) {
             return false;
         }
