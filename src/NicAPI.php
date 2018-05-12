@@ -73,6 +73,9 @@ class NicAPI
             return false;
         }
         $params['authToken'] = self::$apiToken;
+
+        $params = DateTimeMigrator::formatValues($params);
+
         switch ($method) {
             case 'GET':
                 return self::$httpClient->get($url, [

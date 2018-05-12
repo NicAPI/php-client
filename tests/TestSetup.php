@@ -6,7 +6,7 @@
  * Time: 19:07
  */
 
-namespace Unit\DNS;
+namespace Unit;
 
 
 use NicAPI\NicAPI;
