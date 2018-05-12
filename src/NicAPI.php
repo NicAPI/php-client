@@ -120,10 +120,19 @@ class NicAPI
         $response = $response->getBody()->__toString();
         $result = json_decode($response);
         if (json_last_error() == JSON_ERROR_NONE) {
+            self::$success = false;
             return $result;
         } else {
+            self::$success = $response->data->success == 'success';
             return $response;
         }
+    }
+
+    private static $success = null;
+
+    public static function wasSuccess()
+    {
+        return self::$success;
     }
 
     /**
