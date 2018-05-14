@@ -123,7 +123,7 @@ class NicAPI
         $response = $response->getBody()->__toString();
         $result = json_decode($response);
         if (json_last_error() == JSON_ERROR_NONE) {
-            self::$success = $result->data->success == 'success';
+            self::$success = $result->success == 'success';
 
             return $result;
         } else {
