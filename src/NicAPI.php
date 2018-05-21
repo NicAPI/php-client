@@ -139,50 +139,6 @@ class NicAPI
         return self::$success;
     }
 
-    /**
-     * @param $path
-     * @param array $data
-     * @param string $channel
-     * @return array|string
-     */
-    public function get($path, $data = [], $channel = null)
-    {
-        return self::prepareRequest($path, $data, 'GET');
-    }
-
-    /**
-     * @param $path
-     * @param array $data
-     * @param string $channel
-     * @return array|string
-     */
-    public function post($path, $data = [], $channel = null)
-    {
-        return self::prepareRequest($path, $data, 'POST');
-    }
-
-    /**
-     * @param $path
-     * @param array $data
-     * @param string $channel
-     * @return array|string
-     */
-    public function put($path, $data = [], $channel = null)
-    {
-        return self::prepareRequest($path, $data, 'PUT');
-    }
-
-    /**
-     * @param $path
-     * @param array $data
-     * @param string $channel
-     * @return array|string
-     */
-    public function delete($path, $data = [], $channel = null)
-    {
-        return self::prepareRequest($path, $data, 'DELETE');
-    }
-
     public function prepareRequest($path, $data, $method)
     {
         $response = $this->request($path, $data, $method);
@@ -206,7 +162,7 @@ class NicAPI
     {
         foreach (['get', 'post', 'put', 'delete'] as $item) {
             if ($name == $item) {
-                return call_user_func([$this, strtoupper($item)], $arguments);
+                return call_user_func([$this, 'prepareRequest'], isset($arguments[0]) ? $arguments[0] : null, isset($arguments[1]) ? $arguments[1] : [], strtoupper($item));
             }
         }
     }
@@ -216,7 +172,7 @@ class NicAPI
         foreach (['get', 'post', 'put', 'delete'] as $item) {
             if ($name == $item) {
                 $return = call_user_func([self::class, 'channel'], 'default');
-                return call_user_func([$return, strtoupper($item)], $arguments);
+                return call_user_func([$return, $item], $arguments[0]);
             }
         }
     }
