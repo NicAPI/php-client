@@ -145,7 +145,7 @@ class NicAPI
      * @param string $channel
      * @return array|string
      */
-    public static function get($path, $data = [], $channel = 'default')
+    public static function get($path, $data = [], $channel = null)
     {
         return self::prepareRequest($path, $data, 'GET', $channel);
     }
@@ -156,7 +156,7 @@ class NicAPI
      * @param string $channel
      * @return array|string
      */
-    public static function post($path, $data = [], $channel = 'default')
+    public static function post($path, $data = [], $channel = null)
     {
         return self::prepareRequest($path, $data, 'POST', $channel);
     }
@@ -167,7 +167,7 @@ class NicAPI
      * @param string $channel
      * @return array|string
      */
-    public static function put($path, $data = [], $channel = 'default')
+    public static function put($path, $data = [], $channel = null)
     {
         return self::prepareRequest($path, $data, 'PUT', $channel);
     }
@@ -178,19 +178,23 @@ class NicAPI
      * @param string $channel
      * @return array|string
      */
-    public static function delete($path, $data = [], $channel = 'default')
+    public static function delete($path, $data = [], $channel = null)
     {
         return self::prepareRequest($path, $data, 'DELETE', $channel);
     }
 
-    public static function prepareRequest($path, $data, $method, $channel)
+    public function prepareRequest($path, $data, $method, $channel)
     {
-        if (!isset(self::$channels[$channel]))
-            return false;
+        if (!isset($this)) {
+            if (!isset(self::$channels[$channel]))
+                return false;
 
-        $api = self::$channels[$channel];
-        if (!$api instanceof NicAPI)
-            return false;
+            $api = self::$channels[$channel];
+            if (!$api instanceof NicAPI)
+                return false;
+        } else {
+            $api = $this;
+        }
 
         $response = $api->request($path, $data, $method);
 
