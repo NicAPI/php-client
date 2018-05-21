@@ -201,4 +201,12 @@ class NicAPI
         return self::processRequest($response);
     }
 
+    public static function channel($channel) : NicAPI
+    {
+        if (!isset(self::$channels[$channel]) || !($api = self::$channels[$channel] instanceof NicAPI))
+            return false;
+
+        return $api;
+    }
+
 }
