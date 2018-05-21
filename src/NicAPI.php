@@ -16,40 +16,40 @@ class NicAPI
 {
 
     /** @var Client $httpClient */
-    private static $httpClient;
-    private static $url;
-    private static $apiToken;
+    private $httpClient;
+    private $url;
+    private $apiToken;
+
+    private static $channels = [];
 
     public function __construct($apiToken, $url = null, $httpClient = null)
     {
-        self::setApiToken($apiToken);
-        self::setUrl($url ?: 'https://nicapi.eu/api/v1/');
-        self::setHttpClient($httpClient);
+        $this->setApiToken($apiToken);
+        $this->setUrl($url ?: 'https://nicapi.eu/api/v1/');
+        $this->setHttpClient($httpClient);
     }
 
-    public static function init($apiToken, $url = null, $httpClient = null)
+    public static function init($apiToken, $url = null, $httpClient = null, $channel = 'default')
     {
-        self::setApiToken($apiToken);
-        self::setUrl($url ?: 'https://nicapi.eu/api/v1/');
-        self::setHttpClient($httpClient);
+        self::$channels[$channel] = new NicAPI($apiToken, $url, $httpClient);
     }
 
-    public static function setApiToken($apiToken)
+    private function setApiToken($apiToken)
     {
-        self::$apiToken = $apiToken;
+        $this->apiToken = $apiToken;
     }
 
-    public static function setUrl($url)
+    private function setUrl($url)
     {
-        self::$url = $url;
+        $this->url = $url;
     }
 
     /**
      * @param $httpClient \GuzzleHttp\Client
      */
-    public static function setHttpClient($httpClient = null)
+    private function setHttpClient($httpClient = null)
     {
-        self::$httpClient = $httpClient ?: new Client([
+        $this->httpClient = $httpClient ?: new Client([
             'allow_redirects' => false,
             'timeout' => 120
         ]);
@@ -63,48 +63,48 @@ class NicAPI
      *
      * @return bool|ResponseInterface
      */
-    private static function request($actionPath, $params = [], $method = 'GET')
+    private function request($actionPath, $params = [], $method = 'GET')
     {
         if (substr($actionPath, 0, 8) != 'https://')
-            $url = self::$url.$actionPath;
+            $url = $this->url.$actionPath;
         else
             $url = $actionPath;
         if (!is_array($params)) {
             return false;
         }
-        $params['authToken'] = self::$apiToken;
+        $params['authToken'] = $this->apiToken;
 
         $params = DateTimeMigrator::formatValues($params);
 
         switch ($method) {
             case 'GET':
-                return self::$httpClient->get($url, [
+                return $this->httpClient->get($url, [
                     'verify' => false,
                     'query'  => $params,
                 ]);
                 break;
             case 'POST':
-                return self::$httpClient->post($url, [
+                return $this->httpClient->post($url, [
                     'verify' => false,
                     'query'  => [
-                        'authToken' => self::$apiToken,
+                        'authToken' => $this->apiToken,
                     ],
                     'form_params'   => $params,
                 ]);
                 break;
             case 'PUT':
-                return self::$httpClient->put($url, [
+                return $this->httpClient->put($url, [
                     'verify' => false,
                     'query'  => [
-                        'authToken' => self::$apiToken,
+                        'authToken' => $this->apiToken,
                     ],
                     'form_params'   => $params,
                 ]);
             case 'DELETE':
-                return self::$httpClient->delete($url, [
+                return $this->httpClient->delete($url, [
                     'verify' => false,
                     'query'  => [
-                        'authToken' => self::$apiToken,
+                        'authToken' => $this->apiToken,
                     ],
                     'form_params'   => $params,
                 ]);
@@ -142,47 +142,57 @@ class NicAPI
     /**
      * @param $path
      * @param array $data
+     * @param string $channel
      * @return array|string
      */
-    public static function get($path, $data = [])
+    public static function get($path, $data = [], $channel = 'default')
     {
-        $response = self::request($path, $data);
-
-        return self::processRequest($response);
+        return self::prepareRequest($path, $data, 'GET', $channel);
     }
 
     /**
      * @param $path
      * @param array $data
+     * @param string $channel
      * @return array|string
      */
-    public static function post($path, $data = [])
+    public static function post($path, $data = [], $channel = 'default')
     {
-        $response = self::request($path, $data, 'POST');
-
-        return self::processRequest($response);
+        return self::prepareRequest($path, $data, 'POST', $channel);
     }
 
     /**
      * @param $path
      * @param array $data
+     * @param string $channel
      * @return array|string
      */
-    public static function put($path, $data = [])
+    public static function put($path, $data = [], $channel = 'default')
     {
-        $response = self::request($path, $data, 'PUT');
-
-        return self::processRequest($response);
+        return self::prepareRequest($path, $data, 'PUT', $channel);
     }
 
     /**
      * @param $path
      * @param array $data
+     * @param string $channel
      * @return array|string
      */
-    public static function delete($path, $data = [])
+    public static function delete($path, $data = [], $channel = 'default')
     {
-        $response = self::request($path, $data, 'DELETE');
+        return self::prepareRequest($path, $data, 'DELETE', $channel);
+    }
+
+    public static function prepareRequest($path, $data, $method, $channel)
+    {
+        if (!isset(self::$channels[$channel]))
+            return false;
+
+        $api = self::$channels[$channel];
+        if (!$api instanceof NicAPI)
+            return false;
+
+        $response = $api->request($path, $data, $method);
 
         return self::processRequest($response);
     }
