@@ -145,9 +145,9 @@ class NicAPI
      * @param string $channel
      * @return array|string
      */
-    public static function get($path, $data = [], $channel = null)
+    public function get($path, $data = [], $channel = null)
     {
-        return self::channel($channel)->prepareRequest($path, $data, 'GET');
+        return self::prepareRequest($path, $data, 'GET');
     }
 
     /**
@@ -156,9 +156,9 @@ class NicAPI
      * @param string $channel
      * @return array|string
      */
-    public static function post($path, $data = [], $channel = null)
+    public function post($path, $data = [], $channel = null)
     {
-        return self::channel($channel)->prepareRequest($path, $data, 'POST');
+        return self::prepareRequest($path, $data, 'POST');
     }
 
     /**
@@ -167,9 +167,9 @@ class NicAPI
      * @param string $channel
      * @return array|string
      */
-    public static function put($path, $data = [], $channel = null)
+    public function put($path, $data = [], $channel = null)
     {
-        return self::channel($channel)->prepareRequest($path, $data, 'PUT');
+        return self::prepareRequest($path, $data, 'PUT');
     }
 
     /**
@@ -178,9 +178,9 @@ class NicAPI
      * @param string $channel
      * @return array|string
      */
-    public static function delete($path, $data = [], $channel = null)
+    public function delete($path, $data = [], $channel = null)
     {
-        return self::channel($channel)->prepareRequest($path, $data, 'DELETE');
+        return self::prepareRequest($path, $data, 'DELETE');
     }
 
     public function prepareRequest($path, $data, $method)
@@ -199,6 +199,26 @@ class NicAPI
             return null;
 
         return $api;
+    }
+
+
+    public function __call($name, $arguments)
+    {
+        foreach (['get', 'post', 'put', 'delete'] as $item) {
+            if ($name == $item) {
+                return call_user_func([$this, strtoupper($item)], $arguments);
+            }
+        }
+    }
+
+    public static function __callStatic($name, $arguments)
+    {
+        foreach (['get', 'post', 'put', 'delete'] as $item) {
+            if ($name == $item) {
+                $return = call_user_func([self::class, 'channel'], 'default');
+                return call_user_func([$return, strtoupper($item)], $arguments);
+            }
+        }
     }
 
 }
