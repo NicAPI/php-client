@@ -172,7 +172,7 @@ class NicAPI
         foreach (['get', 'post', 'put', 'delete'] as $item) {
             if ($name == $item) {
                 $return = call_user_func([self::class, 'channel'], 'default');
-                return call_user_func([$return, $item], $arguments[0]);
+                return call_user_func([$return, $item], $arguments[0], $arguments[1]);
             }
         }
     }
