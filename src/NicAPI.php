@@ -151,8 +151,10 @@ class NicAPI
         if (!$channel)
             $channel = 'default';
 
-        if (!isset(self::$channels[$channel]) || !(($api = self::$channels[$channel]) instanceof NicAPI))
-            return NicAPI::init(null, null, null, 'default');
+        if (!isset(self::$channels[$channel]) || !(($api = self::$channels[$channel]) instanceof NicAPI)) {
+            NicAPI::init(null, null, null, $channel);
+            return self::$channels[$channel];
+        }
 
         return $api;
     }
