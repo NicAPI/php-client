@@ -152,7 +152,7 @@ class NicAPI
             $channel = 'default';
 
         if (!isset(self::$channels[$channel]) || !(($api = self::$channels[$channel]) instanceof NicAPI)) {
-            NicAPI::init(null, null, null, $channel);
+            NicAPI::init(null, 'https://connect.nicapi.eu/api/v1/', null, $channel);
             return self::$channels[$channel];
         }
 
