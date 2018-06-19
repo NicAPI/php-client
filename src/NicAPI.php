@@ -20,6 +20,8 @@ class NicAPI
     private $url;
     private $apiToken;
 
+    private static $timezone = 'UTC';
+
     private static $channels = [];
 
     public function __construct($apiToken, $url = null, $httpClient = null)
@@ -32,6 +34,10 @@ class NicAPI
     public static function init($apiToken, $url = null, $httpClient = null, $channel = 'default')
     {
         self::$channels[$channel] = new NicAPI($apiToken, $url, $httpClient);
+    }
+
+    public static function setTimezone($tz) {
+        self::$timezone = $tz;
     }
 
     private function setApiToken($apiToken)
@@ -73,6 +79,8 @@ class NicAPI
             return false;
         }
         $params['authToken'] = $this->apiToken;
+        $params['config'] = [];
+        $params['config']['timezone'] = self::$timezone;
 
         $params = DateTimeMigrator::formatValues($params);
 
