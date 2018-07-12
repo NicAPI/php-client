@@ -75,7 +75,7 @@ class NicAPI
             $url = $this->url.$actionPath;
         else
             $url = $actionPath;
-        $url = preg_replace('/(\/+)/','/', $url);
+//        $url = preg_replace('/(\/+)/','/', $url);
 
         if (!is_array($params)) {
             return false;
