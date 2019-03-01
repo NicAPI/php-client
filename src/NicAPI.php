@@ -27,7 +27,7 @@ class NicAPI
     public function __construct($apiToken, $url = null, $httpClient = null)
     {
         $this->setApiToken($apiToken);
-        $this->setUrl($url ?: 'https://connect.nicapi.eu/api/v1/');
+        $this->setUrl($url ?: 'https://connect.nicapi.eu/api/v1');
         $this->setHttpClient($httpClient);
     }
 
