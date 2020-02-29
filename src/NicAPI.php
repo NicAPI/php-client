@@ -156,7 +156,10 @@ class NicAPI
         return self::processRequest($response);
     }
 
-    public static function channel($channel) :? NicAPI
+    /**
+     * @return NicAPI|null
+    */
+    public static function channel($channel)
     {
         if (!$channel)
             $channel = 'default';
