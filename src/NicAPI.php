@@ -33,11 +33,11 @@ class NicAPI
 
     public static function init($apiToken, $url = null, $httpClient = null, $channel = 'default')
     {
-        self::$channels[$channel] = new NicAPI($apiToken, $url, $httpClient);
+        static::$channels[$channel] = new static($apiToken, $url, $httpClient);
     }
 
     public static function setTimezone($tz) {
-        self::$timezone = $tz;
+        static::$timezone = $tz;
     }
 
     private function setApiToken($apiToken)
@@ -82,7 +82,7 @@ class NicAPI
         }
         $params['authToken'] = $this->apiToken;
         $params['config'] = [];
-        $params['config']['timezone'] = self::$timezone;
+        $params['config']['timezone'] = static::$timezone;
 
         $params = DateTimeMigrator::formatValues($params);
 
@@ -133,11 +133,11 @@ class NicAPI
         $response = $response->getBody()->__toString();
         $result = json_decode($response);
         if (json_last_error() == JSON_ERROR_NONE) {
-            self::$success = $result->status == 'success';
+            static::$success = $result->status == 'success';
 
             return $result;
         } else {
-            self::$success = false;
+            static::$success = false;
             return $response;
         }
     }
@@ -146,14 +146,14 @@ class NicAPI
 
     public static function wasSuccess()
     {
-        return self::$success;
+        return static::$success;
     }
 
     public function prepareRequest($path, $data, $method)
     {
         $response = $this->request($path, $data, $method);
 
-        return self::processRequest($response);
+        return static::processRequest($response);
     }
 
     /**
@@ -164,9 +164,9 @@ class NicAPI
         if (!$channel)
             $channel = 'default';
 
-        if (!isset(self::$channels[$channel]) || !(($api = self::$channels[$channel]) instanceof NicAPI)) {
-            NicAPI::init(null, 'https://connect.nicapi.eu/api/v1/', null, $channel);
-            return self::$channels[$channel];
+        if (!isset(static::$channels[$channel]) || !(($api = static::$channels[$channel]) instanceof static)) {
+            static::init(null, 'https://connect.nicapi.eu/api/v1/', null, $channel);
+            return static::$channels[$channel];
         }
 
         return $api;
@@ -177,6 +177,7 @@ class NicAPI
     {
         foreach (['get', 'post', 'put', 'delete'] as $item) {
             if ($name == $item) {
+                dump(get_class($this));
                 return call_user_func([$this, 'prepareRequest'], isset($arguments[0]) ? $arguments[0] : null, isset($arguments[1]) ? $arguments[1] : [], strtoupper($item));
             }
         }
@@ -186,7 +187,7 @@ class NicAPI
     {
         foreach (['get', 'post', 'put', 'delete'] as $item) {
             if ($name == $item) {
-                $return = call_user_func([self::class, 'channel'], 'default');
+                $return = call_user_func([static::class, 'channel'], 'default');
                 return call_user_func([$return, $item], $arguments[0], isset($arguments[1]) ? $arguments[1] : null);
             }
         }
