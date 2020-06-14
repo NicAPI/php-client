@@ -17,15 +17,16 @@ class NicAPI
 
     /** @var Client $httpClient */
     private $httpClient;
-    private $url;
-    private $apiToken;
+    protected $url;
+    protected $apiToken;
 
-    private static $timezone = 'UTC';
+    protected static $timezone = 'UTC';
 
     private static $channels = [];
 
     public function __construct($apiToken, $url = null, $httpClient = null)
     {
+        dump($apiToken);
         $this->setApiToken($apiToken);
         $this->setUrl($url ?: 'https://connect.nicapi.eu/api/v1/');
         $this->setHttpClient($httpClient);
@@ -124,13 +125,14 @@ class NicAPI
     }
 
     /**
-     * @param $response ResponseInterface
+     * @param $response ResponseInterface|string
      *
      * @return array|string
      */
-    private static function processRequest($response)
+    protected static function processRequest($response)
     {
-        $response = $response->getBody()->__toString();
+        if (!is_string($response))
+            $response = $response->getBody()->__toString();
         $result = json_decode($response);
         if (json_last_error() == JSON_ERROR_NONE) {
             static::$success = $result->status == 'success';
@@ -177,7 +179,6 @@ class NicAPI
     {
         foreach (['get', 'post', 'put', 'delete'] as $item) {
             if ($name == $item) {
-                dump(get_class($this));
                 return call_user_func([$this, 'prepareRequest'], isset($arguments[0]) ? $arguments[0] : null, isset($arguments[1]) ? $arguments[1] : [], strtoupper($item));
             }
         }
