@@ -10,6 +10,7 @@ namespace NicAPI;
 
 
 use GuzzleHttp\Client;
+use GuzzleHttp\Exception\ClientException;
 use Psr\Http\Message\ResponseInterface;
 
 class NicAPI
@@ -17,12 +18,14 @@ class NicAPI
 
     /** @var Client $httpClient */
     private $httpClient;
-    protected $url;
-    protected $apiToken;
+    private $url;
+    private $apiToken;
 
-    protected static $timezone = 'UTC';
+    private static $timezone = 'UTC';
 
     private static $channels = [];
+
+    private static $catchExceptions = true;
 
     public function __construct($apiToken, $url = null, $httpClient = null)
     {
@@ -31,13 +34,18 @@ class NicAPI
         $this->setHttpClient($httpClient);
     }
 
+    public static function setCatchExceptions($bool)
+    {
+        self::$catchExceptions = $bool;
+    }
+
     public static function init($apiToken, $url = null, $httpClient = null, $channel = 'default')
     {
-        static::$channels[$channel] = new static($apiToken, $url, $httpClient);
+        self::$channels[$channel] = new NicAPI($apiToken, $url, $httpClient);
     }
 
     public static function setTimezone($tz) {
-        static::$timezone = $tz;
+        self::$timezone = $tz;
     }
 
     private function setApiToken($apiToken)
@@ -82,63 +90,69 @@ class NicAPI
         }
         $params['authToken'] = $this->apiToken;
         $params['config'] = [];
-        $params['config']['timezone'] = static::$timezone;
+        $params['config']['timezone'] = self::$timezone;
 
         $params = DateTimeMigrator::formatValues($params);
 
-        switch ($method) {
-            case 'GET':
-                return $this->httpClient->get($url, [
-                    'verify' => false,
-                    'query'  => $params,
-                ]);
-                break;
-            case 'POST':
-                return $this->httpClient->post($url, [
-                    'verify' => false,
-                    'query'  => [
-                        'authToken' => $this->apiToken,
-                    ],
-                    'form_params'   => $params,
-                ]);
-                break;
-            case 'PUT':
-                return $this->httpClient->put($url, [
-                    'verify' => false,
-                    'query'  => [
-                        'authToken' => $this->apiToken,
-                    ],
-                    'form_params'   => $params,
-                ]);
-            case 'DELETE':
-                return $this->httpClient->delete($url, [
-                    'verify' => false,
-                    'query'  => [
-                        'authToken' => $this->apiToken,
-                    ],
-                    'form_params'   => $params,
-                ]);
-            default:
-                return false;
+        try {
+            switch ($method) {
+                case 'GET':
+                    return $this->httpClient->get($url, [
+                        'verify' => false,
+                        'query' => $params,
+                    ]);
+                    break;
+                case 'POST':
+                    return $this->httpClient->post($url, [
+                        'verify' => false,
+                        'query' => [
+                            'authToken' => $this->apiToken,
+                        ],
+                        'form_params' => $params,
+                    ]);
+                    break;
+                case 'PUT':
+                    return $this->httpClient->put($url, [
+                        'verify' => false,
+                        'query' => [
+                            'authToken' => $this->apiToken,
+                        ],
+                        'form_params' => $params,
+                    ]);
+                case 'DELETE':
+                    return $this->httpClient->delete($url, [
+                        'verify' => false,
+                        'query' => [
+                            'authToken' => $this->apiToken,
+                        ],
+                        'form_params' => $params,
+                    ]);
+                default:
+                    return false;
+            }
+        } catch (ClientException $ex) {
+            if (!self::$catchExceptions)
+                throw $ex;
+
+            return $ex->getResponse();
         }
     }
 
     /**
-     * @param $response ResponseInterface|string
+     * @param $response ResponseInterface
      *
      * @return array|string
      */
-    protected static function processRequest($response)
+    private static function processRequest($response)
     {
-        if (!is_string($response))
-            $response = $response->getBody()->__toString();
+        $response = $response->getBody()->__toString();
         $result = json_decode($response);
         if (json_last_error() == JSON_ERROR_NONE) {
-            static::$success = $result->status == 'success';
+            self::$success = $result->status == 'success';
 
             return $result;
         } else {
-            static::$success = false;
+            self::$success = false;
             return $response;
         }
     }
@@ -147,14 +161,14 @@ class NicAPI
 
     public static function wasSuccess()
     {
-        return static::$success;
+        return self::$success;
     }
 
     public function prepareRequest($path, $data, $method)
     {
         $response = $this->request($path, $data, $method);
 
-        return static::processRequest($response);
+        return self::processRequest($response);
     }
 
     /**
@@ -165,9 +179,9 @@ class NicAPI
         if (!$channel)
             $channel = 'default';
 
-        if (!isset(static::$channels[$channel]) || !(($api = static::$channels[$channel]) instanceof static)) {
-            static::init(null, 'https://connect.nicapi.eu/api/v1/', null, $channel);
-            return static::$channels[$channel];
+        if (!isset(self::$channels[$channel]) || !(($api = self::$channels[$channel]) instanceof NicAPI)) {
+            NicAPI::init(null, 'https://connect.nicapi.eu/api/v1/', null, $channel);
+            return self::$channels[$channel];
         }
 
         return $api;
@@ -187,7 +201,7 @@ class NicAPI
     {
         foreach (['get', 'post', 'put', 'delete'] as $item) {
             if ($name == $item) {
-                $return = call_user_func([static::class, 'channel'], 'default');
+                $return = call_user_func([self::class, 'channel'], 'default');
                 return call_user_func([$return, $item], $arguments[0], isset($arguments[1]) ? $arguments[1] : null);
             }
         }
