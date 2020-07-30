@@ -144,7 +144,8 @@ class NicAPI
      */
     protected static function processRequest($response)
     {
-        $response = $response->getBody()->__toString();
+        if (!is_string($response))
+            $response = $response->getBody()->__toString();
         $result = json_decode($response);
         if (json_last_error() == JSON_ERROR_NONE) {
             static::$success = $result->status == 'success';
