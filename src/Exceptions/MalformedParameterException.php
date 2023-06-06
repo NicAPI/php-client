@@ -6,7 +6,7 @@
  * Time: 19:08
  */
 
-namespace NicAPI;
+namespace NicAPI\Exceptions;
 
 
 class MalformedParameterException extends \Exception
