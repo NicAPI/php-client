@@ -58,6 +58,9 @@ class NicAPI
     }
 
     /**
+     * TLS certificates are verified by default. To use a custom CA bundle,
+     * pass a client configured with e.g. ['verify' => '/path/to/ca.pem'].
+     *
      * @param $httpClient \GuzzleHttp\Client
      */
     private function setHttpClient($httpClient = null)
@@ -97,13 +100,11 @@ class NicAPI
             switch ($method) {
                 case 'GET':
                     return $this->httpClient->get($url, [
-                        'verify' => false,
                         'query' => $params,
                     ]);
                     break;
                 case 'POST':
                     return $this->httpClient->post($url, [
-                        'verify' => false,
                         'query' => [
                             'authToken' => $this->apiToken,
                         ],
@@ -112,7 +113,6 @@ class NicAPI
                     break;
                 case 'PUT':
                     return $this->httpClient->put($url, [
-                        'verify' => false,
                         'query' => [
                             'authToken' => $this->apiToken,
                         ],
@@ -120,7 +120,6 @@ class NicAPI
                     ]);
                 case 'DELETE':
                     return $this->httpClient->delete($url, [
-                        'verify' => false,
                         'query' => [
                             'authToken' => $this->apiToken,
                         ],
